@@ -13,8 +13,8 @@ Der Sponsor-Check wird nicht verändert. Einzige Protokollquellen: KEBAs
 | Runde | Inhalt | Stand |
 |---|---|---|
 | 0 | Erreichbarkeit, Lese-Dump | erledigt (2026-10-26) |
-| 1 | Read-Attribute (status, enabled, power, energy) | `config/round1-read.yaml`, Test offen |
-| 2 | enable / maxcurrent | offen |
+| 1 | Read-Attribute (status, enabled, power, energy) | Lesen ok (2026-10-26), `enabled` (H1) offen |
+| 2 | enable / maxcurrent | Testtool `tools/keba_write.py`, Test offen |
 | 3 | Loadpoint, PV-Modus | offen |
 
 ## Diagnosetool
@@ -25,6 +25,13 @@ Der Sponsor-Check wird nicht verändert. Einzige Protokollquellen: KEBAs
 python3 tools/keba_dump.py <ip>                       # einmaliger Dump
 python3 tools/keba_dump.py <ip> --watch 5 --count 12  # 1 min Verlauf
 python3 tools/keba_dump.py <ip> --json > dump.json
+```
+
+Schreibtest (genau ein Schreibzugriff pro Aufruf, danach Rücklesen):
+
+```sh
+python3 tools/keba_write.py <ip> enable 0|1
+python3 tools/keba_write.py <ip> current <A>   # 6 .. min(16, Reg. 1110)
 ```
 
 ## Register-Map (Lesen)
@@ -71,3 +78,24 @@ gemessen; `Messung` = an meiner Box bestätigt (mit Datum).
 - 1018 als Bytes gelesen 03.0A.50.00 → vermutlich Firmware 3.10.80
   (unbestätigt, mit Web-UI/Display vergleichen).
 - 1016 = 314110: Kodierung unklar, nicht benötigt.
+
+## Register-Map (Schreiben)
+
+Function 0x06 (Write Single Register), Wert uint16.
+
+| Adresse | Inhalt | Wert | Quelle |
+|---|---|---|---|
+| 5004 | Ladestrom setzen | mA | Doku |
+| 5014 | Box freigeben/sperren | 0 sperren, 1 freigeben | Doku |
+
+### Runde 1 Messung (evcc charger, 2026-10-26)
+
+| Situation | status | enabled | power | currents |
+|---|---|---|---|---|
+| angesteckt, lädt nicht | B | false | 0 W | 0/0/0 |
+| lädt (6 A) | C | true | 2763 W | 5,96/5,98/0 |
+| lädt (16 A, von openWB gesetzt) | C | true | 7324 W | 15,8/15,9/0 |
+| abgesteckt | A | false | 0 W | 0/0/0 |
+
+`enabled` (H1, 1100 > 0) ist noch nicht belegt: 1100 fällt auch beim Abstecken
+auf 0, könnte also „kein Ladevorgang“ statt „gesperrt“ bedeuten.

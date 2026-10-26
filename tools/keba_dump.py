@@ -111,6 +111,23 @@ class Client:
             raise ModbusError(f"exception code {body[1]}")
         return body[2:2 + body[1]]
 
+    def write_single(self, addr, value):
+        """Function 0x06 (Write Single Register). Used only by keba_write.py."""
+        self.tid = (self.tid + 1) & 0xFFFF
+        pdu = struct.pack(">BHH", 0x06, addr, value)
+        self.sock.sendall(struct.pack(">HHHB", self.tid, 0, len(pdu) + 1, self.unit) + pdu)
+        tid, _, length, _ = struct.unpack(">HHHB", self._recv(7))
+        body = self._recv(length - 1)
+        if tid != self.tid:
+            raise ModbusError(f"transaction id mismatch ({tid} != {self.tid})")
+        if body[0] & 0x80:
+            raise ModbusError(f"exception code {body[1]}")
+        if body != pdu:
+            raise ModbusError(f"unexpected echo {body.hex()} (sent {pdu.hex()})")
+
+    def read_u32(self, addr):
+        return struct.unpack(">I", self.read_holding(addr, 2))[0]
+
     def close(self):
         self.sock.close()
 
