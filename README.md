@@ -99,3 +99,9 @@ Function 0x06 (Write Single Register), Wert uint16.
 
 `enabled` (H1, 1100 > 0) ist noch nicht belegt: 1100 fällt auch beim Abstecken
 auf 0, könnte also „kein Ladevorgang“ statt „gesperrt“ bedeuten.
+
+### Runde 2, Schreibtest ohne Auto (2026-10-26)
+
+5004 := 6000, 5014 := 0, 5014 := 1 wurden jeweils ohne Modbus-Exception
+quittiert (Echo korrekt). Ohne Fahrzeug zeigt sich keine Wirkung:
+1000 bleibt 1, 1100 bleibt 0. Aussagekräftig erst mit Fahrzeug.
