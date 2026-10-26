@@ -35,9 +35,9 @@ gemessen; `Messung` = an meiner Box bestätigt (mit Datum).
 
 | Adresse | Inhalt | Einheit / Kodierung | Quelle |
 |---|---|---|---|
-| 1000 | Ladestatus | 0 Start-up, 1 nicht bereit, 2 bereit, 3 lädt, 4 Fehler, 5 Autorisierung abgelehnt | Messung 2026-10-26 |
-| 1004 | Kabelstatus | 0 kein Kabel, 1 Kabel an Box, 3 an Box verriegelt, 5 Box+Fahrzeug, 7 Box+Fahrzeug verriegelt | Messung 2026-10-26 |
-| 1006 | Fehlercode | 0 = kein Fehler | Messung 2026-10-26 |
+| 1000 | Ladestatus | 0 Start-up, 1 nicht bereit, 2 bereit, 3 lädt, 4 Fehler, 5 Autorisierung abgelehnt | Messung 2026-10-26 (nur 1, 3 gesehen) |
+| 1004 | Kabelstatus | 0 kein Kabel, 1 Kabel an Box, 3 an Box verriegelt, 5 Box+Fahrzeug, 7 Box+Fahrzeug verriegelt | Messung 2026-10-26 (nur 3, 7 gesehen) |
+| 1006 | Fehlercode | 0 = kein Fehler | Messung 2026-10-26 (nur 0 gesehen) |
 | 1008/1010/1012 | Strom L1/L2/L3 | mA | Messung 2026-10-26 |
 | 1014 | Seriennummer | dezimal | Doku |
 | 1016 | Produkttyp | dezimal, Kodierung offen | Doku |
