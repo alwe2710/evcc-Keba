@@ -1,0 +1,101 @@
+# Runde 1: nur lesender Test des custom chargers.
+# enable/maxcurrent sind absichtlich No-ops (evcc verlangt sie für type: custom),
+# damit in dieser Runde garantiert nichts an die Box geschrieben wird.
+chargers:
+  - name: keba
+    type: custom
+
+    # Status A/B/C/F aus Ladestatus (1000) und Kabelstatus (1004)
+    status:
+      source: js
+      in:
+        - name: charging
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1000
+              type: holding
+              decode: uint32
+        - name: cable
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1004
+              type: holding
+              decode: uint32
+      script: |
+        if (charging == 4) "F";
+        else if (charging == 3) "C";
+        else if (cable >= 5) "B";
+        else "A";
+
+    # HYPOTHESE H1: Box gesperrt <=> Register 1100 (max. Ladestrom) == 0.
+    # Wird in Runde 2 beim Schreiben von 5014 verifiziert.
+    enabled:
+      source: js
+      in:
+        - name: maxma
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1100
+              type: holding
+              decode: uint32
+      script: |
+        maxma > 0;
+
+    power:
+      source: modbus
+      uri: 192.168.178.151:502
+      id: 255
+      register:
+        address: 1020   # mW (gemessen)
+        type: holding
+        decode: uint32
+      scale: 0.001
+
+    energy:
+      source: modbus
+      uri: 192.168.178.151:502
+      id: 255
+      register:
+        address: 1036   # 0,1 Wh (gemessen)
+        type: holding
+        decode: uint32
+      scale: 0.0001
+
+    currents:
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1008, type: holding, decode: uint32 }
+        scale: 0.001
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1010, type: holding, decode: uint32 }
+        scale: 0.001
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1012, type: holding, decode: uint32 }
+        scale: 0.001
+
+    # No-op Setter (Runde 1): schreiben NICHTS.
+    enable:
+      source: js
+      script: |
+        0;
+    maxcurrent:
+      source: js
+      script: |
+        0;
