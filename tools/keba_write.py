@@ -4,9 +4,10 @@
 Exactly ONE write per invocation (function 0x06), no loops. Afterwards it
 waits --settle seconds and reads back the relevant registers.
 
-Write registers (source: KEBA P30 Modbus TCP Programmers Guide, NOT yet
-verified on this box):
-    5004  set charging current  [mA]
+Write registers (source: KEBA P30 Modbus TCP Programmers Guide V1.04, ch. 4,
+both verified on this box 2026-10-27). The guide recommends > 5 s between
+writes.
+    5004  set charging current  [mA], 6000..63000, valid until reboot
     5014  enable/disable station  0 = disable, 1 = enable
 
 Usage:

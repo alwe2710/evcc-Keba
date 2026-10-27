@@ -4,9 +4,9 @@
 Sends ONLY function code 0x03 (Read Holding Registers). It never writes.
 No dependencies beyond the Python 3 standard library.
 
-Register map source: KEBA "KeContact P30 Modbus TCP Programmers Guide"
-(public document). Every entry is marked "doc" until confirmed by a
-measurement on the real box; see README.md for the verification status.
+Register map source: KEBA "KeContact P30 Modbus TCP Programmers Guide" V1.04
+(public document) plus own measurements; see README.md for the verification
+status. The guide recommends > 0.5 s between reads, hence the default --delay.
 
 Usage:
     python3 keba_dump.py 192.168.x.x
@@ -24,11 +24,11 @@ import time
 # Charging state (reg 1000) and cable state (reg 1004) per Programmers Guide.
 CHARGING_STATE = {
     0: "start-up",
-    1: "not ready for charging (e.g. disabled / waiting)",
+    1: "not ready for charging (no EV / locked by authorization)",
     2: "ready for charging, waiting for EV",
     3: "charging",
     4: "error",
-    5: "authorization rejected",
+    5: "interrupted (suspended / disabled or temperature)",
 }
 CABLE_STATE = {
     0: "no cable plugged",
@@ -51,20 +51,38 @@ def hexval(v):
     return f"0x{v:08X}"
 
 
+def firmware(v):
+    # guide 3.9: 0x030A0D00 = 3.10.14
+    return f"{v >> 24}.{(v >> 16) & 0xFF}.{(v >> 8) & 0xFF} (0x{v:08X})"
+
+
+def product(v):
+    # guide 3.8: six decimal digits, e.g. 304111
+    d = f"{v:06d}"
+    if len(d) != 6:
+        return "unknown encoding"
+    cable = {"0": "socket", "1": "cable"}.get(d[1], "?")
+    amps = {"1": "13 A", "2": "16 A", "3": "20 A", "4": "32 A"}.get(d[2], "?")
+    series = {"0": "x-series", "1": "c-series"}.get(d[3], "?")
+    meter = {"1": "std meter", "2": "MID meter", "3": "national cert. meter"}.get(d[4], "?")
+    rfid = {"0": "no RFID", "1": "RFID"}.get(d[5], "?")
+    return f"KC-P30, {cable}, {amps}, {series}, {meter}, {rfid}"
+
+
 # (address, name, interpretation). All registers are 2 x 16 bit, uint32 big endian
 # (assumption from the guide, to be verified).
 REGISTERS = [
     (1000, "charging_state", enum(CHARGING_STATE)),
     (1004, "cable_state", enum(CABLE_STATE)),
-    (1006, "error_code", lambda v: "no error" if v == 0 else f"error {v}"),
+    (1006, "error_code", lambda v: "no error" if v == 0 else f"error 0x{v:X}"),
     (1008, "current_l1", scale(0.001, "A")),  # mA
     (1010, "current_l2", scale(0.001, "A")),
     (1012, "current_l3", scale(0.001, "A")),
     (1014, "serial_number", str),
-    (1016, "product_type", str),
-    (1018, "firmware_version", hexval),
+    (1016, "product_type", product),
+    (1018, "firmware_version", firmware),
     (1020, "active_power", scale(0.001, "W")),  # mW
-    (1036, "total_energy", scale(0.0001, "kWh")),  # 0.1 Wh
+    (1036, "total_energy", scale(0.0001, "kWh")),  # 0.1 Wh measured (guide says Wh)
     (1040, "voltage_l1", scale(1, "V")),
     (1042, "voltage_l2", scale(1, "V")),
     (1044, "voltage_l3", scale(1, "V")),
@@ -72,7 +90,7 @@ REGISTERS = [
     (1100, "max_charging_current", scale(0.001, "A")),  # mA
     (1110, "max_supported_current", scale(0.001, "A")),  # mA, HW limit (DIP)
     (1500, "rfid_card", hexval),
-    (1502, "session_energy", scale(0.0001, "kWh")),  # 0.1 Wh
+    (1502, "session_energy", scale(0.0001, "kWh")),  # 0.1 Wh measured (guide says Wh)
     (1550, "phase_switch_source", str),
     (1552, "phase_switch_state", str),
     (1600, "failsafe_current", scale(0.001, "A")),  # mA
@@ -166,8 +184,8 @@ def main():
     p.add_argument("--port", type=int, default=502)
     p.add_argument("--unit", type=int, default=255)
     p.add_argument("--timeout", type=float, default=3.0)
-    p.add_argument("--delay", type=float, default=0.1,
-                   help="pause between single register reads in s (default 0.1)")
+    p.add_argument("--delay", type=float, default=0.5,
+                   help="pause between single register reads in s (default 0.5)")
     p.add_argument("--watch", type=float, metavar="SEC",
                    help="repeat the dump every SEC seconds (min 2)")
     p.add_argument("--count", type=int, default=10,

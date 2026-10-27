@@ -68,7 +68,7 @@ chargers:
       uri: 192.168.178.151:502
       id: 255
       register:
-        address: 1036   # 0,1 Wh (gemessen)
+        address: 1036   # 0,1 Wh (gemessen; Doku V1.04 sagt Wh, widerspricht der Messung)
         type: holding
         decode: uint32
       scale: 0.0001
