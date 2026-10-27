@@ -85,8 +85,8 @@ Function 0x06 (Write Single Register), Wert uint16.
 
 | Adresse | Inhalt | Wert | Quelle |
 |---|---|---|---|
-| 5004 | Ladestrom setzen | mA | Doku |
-| 5014 | Box freigeben/sperren | 0 sperren, 1 freigeben | Doku |
+| 5004 | Ladestrom setzen | mA | Messung 2026-10-26 (6→8 A wirkt) |
+| 5014 | Box freigeben/sperren | 0 sperren, 1 freigeben | Messung 2026-10-26 (Freigabe wirkt, Sperre beim Laden offen) |
 
 ### Runde 1 Messung (evcc charger, 2026-10-26)
 
@@ -105,3 +105,12 @@ auf 0, könnte also „kein Ladevorgang“ statt „gesperrt“ bedeuten.
 5004 := 6000, 5014 := 0, 5014 := 1 wurden jeweils ohne Modbus-Exception
 quittiert (Echo korrekt). Ohne Fahrzeug zeigt sich keine Wirkung:
 1000 bleibt 1, 1100 bleibt 0. Aussagekräftig erst mit Fahrzeug.
+
+### Runde 2, Schreibtest mit Auto (2026-10-26)
+
+- Nach dem Anstecken: 1000 = 5 („authorization rejected“), 1100 = 0. Wert 5
+  bedeutet hier praktisch „Fahrzeug da, Laden nicht freigegeben“; evcc-Status B.
+- `current 6` und `enable 0` in diesem Zustand: keine sichtbare Änderung.
+- `enable 1`: Ladung startet, 1000 = 3, 1100 = 6000, 2753 W.
+- `current 8`: 1100 = 8000, 3676 W (≈ 2 × 230 V × 8 A) – 5004 in mA bestätigt.
+- Offen: Sperre (5014 := 0) während einer laufenden Ladung; ob 1100 dann auf 0 fällt (H1).
