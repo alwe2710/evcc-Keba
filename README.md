@@ -13,8 +13,8 @@ Der Sponsor-Check wird nicht verändert. Einzige Protokollquellen: KEBAs
 | Runde | Inhalt | Stand |
 |---|---|---|
 | 0 | Erreichbarkeit, Lese-Dump | erledigt (2026-10-26) |
-| 1 | Read-Attribute (status, enabled, power, energy) | Lesen ok (2026-10-26), `enabled` (H1) offen |
-| 2 | enable / maxcurrent | Testtool `tools/keba_write.py`, Test offen |
+| 1 | Read-Attribute (status, enabled, power, energy) | erledigt (2026-10-27) |
+| 2 | enable / maxcurrent | erledigt (2026-10-27), Failsafe offen |
 | 3 | Loadpoint, PV-Modus | offen |
 
 ## Diagnosetool
@@ -123,3 +123,19 @@ quittiert (Echo korrekt). Ohne Fahrzeug zeigt sich keine Wirkung:
   von selbst. Die Freigabe übersteht also das Abstecken; der frühere Zustand 5
   nach dem Anstecken kam vermutlich von openWB.
 - Bekannte Einschränkung: ohne Fahrzeug liest 1100 = 0, `enabled` daher false.
+
+### Runde 2, evcc-Setter (`config/round2-write.yaml`, 2026-10-27)
+
+| evcc-Befehl | 1000 | Leistung |
+|---|---|---|
+| Ausgangszustand | 3 | 2737 W |
+| `--disable` | 5 | 0 W |
+| `--enable` | 3 | 2733 W |
+| `--current 8` | 3 | 3652 W |
+| `--current 6` | 3 | 2735 W |
+
+Bekannte Einschränkungen:
+- `maxcurrent`-Setter braucht im js-`out` `type: float` (otto liefert float64;
+  `type: int` führt zu einem evcc-Panic).
+- Failsafe (1600/1602) ist an der Box inaktiv. Fällt evcc aus, bleibt der
+  zuletzt gesetzte Strom aktiv.

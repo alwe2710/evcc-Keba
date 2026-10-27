@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 
 readback() {
   sleep 15
-  python3 tools/keba_dump.py "$IP" | sed -n '3,5p;12p;17p'
+  python3 tools/keba_dump.py "$IP" | sed -n '3,5p;12p;18p'
 }
 
 step() {
@@ -21,7 +21,7 @@ step() {
 }
 
 echo "Ausgangszustand:"
-python3 tools/keba_dump.py "$IP" | sed -n '3,5p;12p;17p'
+python3 tools/keba_dump.py "$IP" | sed -n '3,5p;12p;18p'
 step "1: evcc --disable (erwartet 1000=5, 1100=0, 0 W)" --disable
 step "2: evcc --enable (erwartet 1000=3, 1100=6000)" --enable
 step "3: evcc --current 8 (erwartet 1100=8000, ~3,7 kW)" "--current 8"
