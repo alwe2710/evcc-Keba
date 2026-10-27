@@ -101,13 +101,15 @@ chargers:
 
     # evcc liefert A, Box erwartet mA in 5004 (gemessen). Zusätzliche harte
     # Kappung auf 6..16 A, unabhängig von der Loadpoint-Config.
+    # out-Typ float: evccs JS-Engine (otto) liefert Rechenergebnisse als float64,
+    # type: int führt zu einem Panic. Modbus schreibt den Wert als uint16.
     maxcurrent:
       source: js
       script: |
         Math.round(Math.min(Math.max(maxcurrent, 6), 16) * 1000);
       out:
         - name: ma
-          type: int
+          type: float
           config:
             source: modbus
             uri: 192.168.178.151:502
