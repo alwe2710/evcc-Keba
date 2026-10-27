@@ -86,7 +86,7 @@ Function 0x06 (Write Single Register), Wert uint16.
 | Adresse | Inhalt | Wert | Quelle |
 |---|---|---|---|
 | 5004 | Ladestrom setzen | mA | Messung 2026-10-26 (6→8 A wirkt) |
-| 5014 | Box freigeben/sperren | 0 sperren, 1 freigeben | Messung 2026-10-26 (Freigabe wirkt, Sperre beim Laden offen) |
+| 5014 | Box freigeben/sperren | 0 sperren, 1 freigeben | Messung 2026-10-27 |
 
 ### Runde 1 Messung (evcc charger, 2026-10-26)
 
@@ -114,3 +114,12 @@ quittiert (Echo korrekt). Ohne Fahrzeug zeigt sich keine Wirkung:
 - `enable 1`: Ladung startet, 1000 = 3, 1100 = 6000, 2753 W.
 - `current 8`: 1100 = 8000, 3676 W (≈ 2 × 230 V × 8 A) – 5004 in mA bestätigt.
 - Offen: Sperre (5014 := 0) während einer laufenden Ladung; ob 1100 dann auf 0 fällt (H1).
+
+### Runde 2, Sperren während der Ladung (2026-10-27)
+
+- `enable 0` beim Laden: 1000 = 5, 1100 = 0, 0 W. `enable 1`: 1000 = 3,
+  1100 = 6000, 2742 W. **H1 bestätigt:** `enabled` = 1100 > 0.
+- Ab-/Anstecken bei freigegebener Box: 1000 = 1, 1100 = 6000, Ladung startet
+  von selbst. Die Freigabe übersteht also das Abstecken; der frühere Zustand 5
+  nach dem Anstecken kam vermutlich von openWB.
+- Bekannte Einschränkung: ohne Fahrzeug liest 1100 = 0, `enabled` daher false.

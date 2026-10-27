@@ -1,0 +1,118 @@
+# Runde 2: custom charger mit Schreibzugriff (enable, maxcurrent).
+chargers:
+  - name: keba
+    type: custom
+
+    # Status A/B/C/F aus Ladestatus (1000) und Kabelstatus (1004)
+    status:
+      source: js
+      in:
+        - name: charging
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1000
+              type: holding
+              decode: uint32
+        - name: cable
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1004
+              type: holding
+              decode: uint32
+      script: |
+        if (charging == 4) "F";
+        else if (charging == 3) "C";
+        else if (cable >= 5) "B";
+        else "A";
+
+    # Freigabe = Register 1100 (max. Ladestrom) > 0 (gemessen 2026-10-27:
+    # 5014 := 0 beim Laden -> 1100 = 0, 5014 := 1 -> 1100 = 6000).
+    # Einschränkung: ohne Fahrzeug liest 1100 immer 0, also enabled = false.
+    enabled:
+      source: js
+      in:
+        - name: maxma
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 1100
+              type: holding
+              decode: uint32
+      script: |
+        maxma > 0;
+
+    power:
+      source: modbus
+      uri: 192.168.178.151:502
+      id: 255
+      register:
+        address: 1020   # mW (gemessen)
+        type: holding
+        decode: uint32
+      scale: 0.001
+
+    energy:
+      source: modbus
+      uri: 192.168.178.151:502
+      id: 255
+      register:
+        address: 1036   # 0,1 Wh (gemessen)
+        type: holding
+        decode: uint32
+      scale: 0.0001
+
+    currents:
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1008, type: holding, decode: uint32 }
+        scale: 0.001
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1010, type: holding, decode: uint32 }
+        scale: 0.001
+      - source: modbus
+        uri: 192.168.178.151:502
+        id: 255
+        register: { address: 1012, type: holding, decode: uint32 }
+        scale: 0.001
+
+    # 5014: 0 = sperren, 1 = freigeben (gemessen)
+    enable:
+      source: modbus
+      uri: 192.168.178.151:502
+      id: 255
+      register:
+        address: 5014
+        type: writesingle
+        decode: uint16
+
+    # evcc liefert A, Box erwartet mA in 5004 (gemessen). Zusätzliche harte
+    # Kappung auf 6..16 A, unabhängig von der Loadpoint-Config.
+    maxcurrent:
+      source: js
+      script: |
+        Math.round(Math.min(Math.max(maxcurrent, 6), 16) * 1000);
+      out:
+        - name: ma
+          type: int
+          config:
+            source: modbus
+            uri: 192.168.178.151:502
+            id: 255
+            register:
+              address: 5004
+              type: writesingle
+              decode: uint16
