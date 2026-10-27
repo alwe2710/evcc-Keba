@@ -14,8 +14,8 @@ Der Sponsor-Check wird nicht verändert. Einzige Protokollquellen: KEBAs
 |---|---|---|
 | 0 | Erreichbarkeit, Lese-Dump | erledigt (2026-10-26) |
 | 1 | Read-Attribute (status, enabled, power, energy) | erledigt (2026-10-27) |
-| 2 | enable / maxcurrent | erledigt (2026-10-27), Failsafe offen |
-| 3 | Loadpoint, PV-Modus | offen |
+| 2 | enable / maxcurrent | erledigt (2026-10-27); Failsafe bewusst nicht genutzt |
+| 3 | Loadpoint, PV-Modus | `config/keba-ui.yaml` für die Web-UI, Test offen |
 
 ## Diagnosetool
 
@@ -176,3 +176,11 @@ Bekannte Einschränkungen:
   für eine Pause pro Anfrage. In allen Tests lief das fehlerfrei.
 - Beim Start einer Ladung schreibt evcc `maxcurrent` und `enable` evtl. kurz
   hintereinander. Die Doku empfiehlt > 5 s, in den Tests gab es keine Probleme.
+
+## Umgebung
+
+- evcc 0.318.1, Linux-Paket (systemd), Konfiguration über die Web-UI
+  (keine `/etc/evcc.yaml`, Datenbank `/var/lib/evcc/evcc.db`)
+- openWB-Steuerung deaktiviert (2026-10-27)
+- Failsafe: bewusst nicht aktiviert (Entscheidung 2026-10-27). Fällt evcc aus,
+  lädt die Box mit dem zuletzt gesetzten Strom weiter (max. 16 A, Register 1110).
